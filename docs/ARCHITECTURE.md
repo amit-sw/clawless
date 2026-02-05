@@ -36,6 +36,10 @@ Both processes share a SQLite database in `internal_root/clawless.db`.
 
 All file tools are constrained to the `shared_root` directory, with path resolution enforcing that requests do not escape the root.
 
+## Logs
+
+Runtime logs are stored in `shared_root/logs/YYYY/MM/DD/file<start-timestamp>.log` for troubleshooting.
+
 ## Heartbeat
 
 - Runs on a fixed interval (default 30 minutes).

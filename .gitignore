@@ -37,6 +37,11 @@ Thumbs.db
 .streamlit/.credentials
 .streamlit/.cache/
 
+# Clawless runtime
+config/config.json
+internal/
+shared/
+
 # Environment files
 .env
 .env.*

@@ -1,6 +1,6 @@
 # Configuration
 
-Config file: `config/config.json` (default). Override location with `CLAWLESS_CONFIG_ROOT`.
+Config file: `~/.clawless/config.json` (fixed location).
 
 ## Schema
 
@@ -15,7 +15,7 @@ Config file: `config/config.json` (default). Override location with `CLAWLESS_CO
     "api_key": "..."
   },
   "paths": {
-    "config_root": "/abs/path/config",
+    "config_root": "/home/user/.clawless",
     "internal_root": "/abs/path/internal",
     "shared_root": "/abs/path/shared"
   },
@@ -46,3 +46,7 @@ Config file: `config/config.json` (default). Override location with `CLAWLESS_CO
 ## MCP
 
 `mcp_servers` is a list of MCP endpoints with Bearer auth. `list_method` and `call_method` can be customized to match server JSON-RPC method names.
+
+## Logs
+
+Logs are written under `shared_root/logs/YYYY/MM/DD/file<start-timestamp>.log`.

@@ -4,6 +4,7 @@ Clawless is a Telegram-only, Python-only assistant with tracks, tools, and a Str
 
 - Single-user Telegram bot with implicit `#track:<name>` routing
 - File read/edit tools constrained to a shared directory
+- Shared logs directory under `shared_root/logs/` with date-based folders
 - Skills (optional, loaded from the internal root)
 - Remote MCP tool invocation (Bearer auth)
 - Global scheduling and OpenClaw-style heartbeat checks
@@ -40,11 +41,7 @@ clawless-bot
 
 ## Configuration
 
-Configuration lives in `config/config.json` by default. Override location with:
-
-```bash
-export CLAWLESS_CONFIG_ROOT=/path/to/config
-```
+Configuration lives in `~/.clawless/config.json` (fixed location).
 
 See `docs/CONFIG.md` for schema details.
 

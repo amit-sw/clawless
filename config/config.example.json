@@ -4,7 +4,7 @@
     "telegram.owner_user_id": "Your numeric Telegram user id (use @userinfobot).",
     "llm.connection_string": "Format: <provider>:<model>. Examples: openai:gpt-4o, openrouter:anthropic/claude-3.5-sonnet",
     "llm.api_key": "API key for the chosen provider.",
-    "paths.config_root": "Absolute path where this config lives.",
+    "paths.config_root": "Fixed to ~/.clawless; do not edit.",
     "paths.internal_root": "Absolute path for internal files (DB, logs, skills).",
     "paths.shared_root": "Absolute path for user-facing files (read/write by tools).",
     "mcp_servers": "Optional list of MCP servers. Bearer auth only.",
@@ -19,7 +19,7 @@
     "api_key": "PASTE_LLM_API_KEY"
   },
   "paths": {
-    "config_root": "/absolute/path/to/config",
+    "config_root": "/home/user/.clawless",
     "internal_root": "/absolute/path/to/internal",
     "shared_root": "/absolute/path/to/shared"
   },

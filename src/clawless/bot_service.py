@@ -9,6 +9,7 @@ from clawless.agent import Agent, LangChainLLMClient, LLMClient, Message
 from clawless.config import ConfigManager, coerce_config_roots, ensure_paths, normalize_mcp_servers
 from clawless.db import connect, init_db
 from clawless.heartbeat import run_heartbeat
+from clawless.logging_utils import create_log_writer
 from clawless.paths import PathRoots, PathSandbox
 from clawless.router import route_message
 from clawless.scheduler import SchedulerService
@@ -19,7 +20,7 @@ from clawless.tools.mcp_tools import create_loader
 from clawless.tools.skill_tools import SkillRunner
 from clawless.tracks import TrackManager
 
-DEFAULT_CONFIG_ROOT = Path("./config")
+DEFAULT_CONFIG_ROOT = Path.home() / ".clawless"
 
 
 def build_tools(sandbox: PathSandbox, config) -> ToolRegistry:
@@ -35,9 +36,12 @@ def build_tools(sandbox: PathSandbox, config) -> ToolRegistry:
     return registry
 
 
-def build_agent(config, tools: ToolRegistry) -> Agent:
+def build_agent(config, tools: ToolRegistry, config_path: Path) -> Agent:
     if not config.llm.connection_string or not config.llm.api_key:
-        raise RuntimeError("LLM connection_string and api_key must be configured.")
+        raise RuntimeError(
+            "LLM connection_string and api_key must be configured. "
+            f"Config path: {config_path}"
+        )
     llm: LLMClient = LangChainLLMClient(
         connection_string=config.llm.connection_string,
         api_key=config.llm.api_key,
@@ -46,11 +50,13 @@ def build_agent(config, tools: ToolRegistry) -> Agent:
 
 
 def main() -> None:
-    config_root = Path(os.environ.get("CLAWLESS_CONFIG_ROOT", str(DEFAULT_CONFIG_ROOT)))\n    config_root = config_root.expanduser().resolve()
+    config_root = Path(os.environ.get("CLAWLESS_CONFIG_ROOT", str(DEFAULT_CONFIG_ROOT)))
+    config_root = config_root.expanduser().resolve()
     manager = ConfigManager(config_root)
     config = manager.load()
     config = coerce_config_roots(config)
     ensure_paths(config.paths)
+    log_writer = create_log_writer(Path(config.paths.shared_root))
 
     db_path = Path(config.paths.internal_root) / "clawless.db"
     conn = connect(db_path)
@@ -64,15 +70,19 @@ def main() -> None:
         )
     )
     tools = build_tools(sandbox, config)
-    agent = build_agent(config, tools)
+    agent = build_agent(config, tools, manager.config_path)
     tracks = TrackManager(conn)
 
     if not config.telegram.token or not config.telegram.owner_user_id:
-        raise RuntimeError(\"Telegram token and owner_user_id must be configured.\")
+        raise RuntimeError(
+            "Telegram token and owner_user_id must be configured. "
+            f"Config path: {manager.config_path}"
+        )
     telegram = TelegramAdapter(config.telegram.token, config.telegram.owner_user_id)
 
     def send(chat_id: int, text: str) -> None:
         telegram.send_message(chat_id, text)
+        log_writer.write(f"send chat_id={chat_id} text={text}")
 
     def agent_call(prompt: str, track_name: str | None = None) -> str:
         track = tracks.get_or_create(track_name or "default")
@@ -98,7 +108,9 @@ def main() -> None:
     def heartbeat_job() -> None:
         result = run_heartbeat(config.heartbeat, config.paths.shared_root, lambda p: agent_call(p, "default"))
         if result.suppressed:
+            log_writer.write("heartbeat suppressed")
             return
+        log_writer.write(f"heartbeat message={result.message}")
         chat_id = _get_last_chat_id(conn)
         if chat_id:
             send(chat_id, result.message)
@@ -118,6 +130,7 @@ def main() -> None:
             updates = telegram.poll()
             for update in updates:
                 _set_last_chat_id(conn, update.chat_id)
+                log_writer.write(f"recv chat_id={update.chat_id} text={update.text}")
                 routed = route_message(update.text)
                 if routed.text.startswith("/track"):
                     response = _handle_track_command(routed.text, tracks)
@@ -137,6 +150,7 @@ def main() -> None:
                 send(update.chat_id, response)
         except Exception as exc:  # noqa: BLE001
             print(f"Error: {exc}")
+            log_writer.write(f"error {exc}")
             time.sleep(2)
 
 

@@ -147,10 +147,13 @@ class ConfigManager:
         if not self.config_path.exists():
             return AppConfig()
         data = json.loads(self.config_path.read_text(encoding="utf-8"))
-        return AppConfig.from_dict(data)
+        config = AppConfig.from_dict(data)
+        config.paths.config_root = self.config_root
+        return config
 
     def save(self, config: AppConfig) -> None:
         self.config_root.mkdir(parents=True, exist_ok=True)
+        config.paths.config_root = self.config_root
         self.config_path.write_text(
             json.dumps(config.to_dict(), indent=2, sort_keys=True),
             encoding="utf-8",
@@ -161,6 +164,7 @@ def ensure_paths(paths: PathsConfig) -> None:
     for root in (paths.config_root, paths.internal_root, paths.shared_root):
         Path(root).mkdir(parents=True, exist_ok=True)
     Path(paths.internal_root, "skills").mkdir(parents=True, exist_ok=True)
+    Path(paths.shared_root, "logs").mkdir(parents=True, exist_ok=True)
 
 
 def parse_active_hours(value: Optional[str]) -> Optional[tuple[int, int]]:

@@ -10,7 +10,7 @@ from clawless.config import AppConfig, ConfigManager, coerce_config_roots, ensur
 from clawless.db import connect, init_db
 from clawless.tracks import TrackManager
 
-DEFAULT_CONFIG_ROOT = Path("./config")
+DEFAULT_CONFIG_ROOT = Path.home() / ".clawless"
 
 
 def _load_config() -> tuple[ConfigManager, AppConfig]:
@@ -26,11 +26,13 @@ def main() -> None:
     manager, config = _load_config()
 
     st.title("Clawless Control Panel")
+    st.caption(f"Config file: {manager.config_path}")
 
     tabs = st.tabs(["Onboarding", "Tracks", "Jobs", "MCP", "Heartbeat"])
 
     with tabs[0]:
         st.subheader("Configuration")
+        st.caption("Config root is fixed at ~/.clawless")
         with st.form("config_form"):
             st.write("Telegram")
             token = st.text_input("Telegram Bot Token", value=config.telegram.token, type="password")
@@ -44,7 +46,6 @@ def main() -> None:
             api_key = st.text_input("API Key", value=config.llm.api_key, type="password")
 
             st.write("Paths")
-            config_root = st.text_input("Config Root", value=str(config.paths.config_root))
             internal_root = st.text_input("Internal Root", value=str(config.paths.internal_root))
             shared_root = st.text_input("Shared Root", value=str(config.paths.shared_root))
 
@@ -54,12 +55,11 @@ def main() -> None:
                 config.telegram.owner_user_id = int(owner_id or 0)
                 config.llm.connection_string = connection_string
                 config.llm.api_key = api_key
-                config.paths.config_root = Path(config_root)
+                config.paths.config_root = manager.config_root
                 config.paths.internal_root = Path(internal_root)
                 config.paths.shared_root = Path(shared_root)
                 ensure_paths(config.paths)
-                new_manager = ConfigManager(Path(config_root).expanduser().resolve())
-                new_manager.save(config)
+                manager.save(config)
                 st.success("Saved configuration.")
 
     with tabs[1]:
