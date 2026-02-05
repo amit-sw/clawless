@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "clawless"
+version = "0.1.0"
+description = "Telegram-only, Python-only AI assistant with tracks, tools, and Streamlit UI."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "clawless" }]
+
+dependencies = [
+  "requests>=2.31",
+  "APScheduler>=3.10",
+  "streamlit>=1.31",
+  "typing-extensions>=4.7",
+]
+
+[project.optional-dependencies]
+llm = [
+  "langchain>=0.2",
+  "langchain-openai>=0.1",
+  "langchain-community>=0.2",
+]
+test = [
+  "pytest>=7.4",
+  "pytest-cov>=4.1",
+]
+
+[project.scripts]
+clawless-bot = "clawless.bot_service:main"
+clawless-ui = "clawless.cli:run_ui"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "-q"

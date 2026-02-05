@@ -1,0 +1,42 @@
+{
+  "__instructions__": {
+    "telegram.token": "Create a bot with @BotFather and paste the token here.",
+    "telegram.owner_user_id": "Your numeric Telegram user id (use @userinfobot).",
+    "llm.connection_string": "Format: <provider>:<model>. Examples: openai:gpt-4o, openrouter:anthropic/claude-3.5-sonnet",
+    "llm.api_key": "API key for the chosen provider.",
+    "paths.config_root": "Absolute path where this config lives.",
+    "paths.internal_root": "Absolute path for internal files (DB, logs, skills).",
+    "paths.shared_root": "Absolute path for user-facing files (read/write by tools).",
+    "mcp_servers": "Optional list of MCP servers. Bearer auth only.",
+    "heartbeat": "Heartbeat configuration. Use interval_minutes=30 to match defaults."
+  },
+  "telegram": {
+    "token": "PASTE_TELEGRAM_BOT_TOKEN",
+    "owner_user_id": 123456789
+  },
+  "llm": {
+    "connection_string": "openai:gpt-4o",
+    "api_key": "PASTE_LLM_API_KEY"
+  },
+  "paths": {
+    "config_root": "/absolute/path/to/config",
+    "internal_root": "/absolute/path/to/internal",
+    "shared_root": "/absolute/path/to/shared"
+  },
+  "mcp_servers": [
+    {
+      "name": "example",
+      "url": "https://mcp.example.com/jsonrpc",
+      "bearer_token": "PASTE_BEARER_TOKEN",
+      "list_method": "tools/list",
+      "call_method": "tools/call"
+    }
+  ],
+  "heartbeat": {
+    "enabled": true,
+    "interval_minutes": 30,
+    "active_hours": "09:00-17:00",
+    "prompt": "You are running a heartbeat check. If HEARTBEAT.md exists, read it. Identify anything that needs attention. If nothing needs attention, reply exactly with HEARTBEAT_OK.",
+    "checklist_path": "HEARTBEAT.md"
+  }
+}
