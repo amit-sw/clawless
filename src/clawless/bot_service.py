@@ -16,6 +16,7 @@ from clawless.scheduler import SchedulerService
 from clawless.telegram.adapter import TelegramAdapter
 from clawless.tools.base import ToolRegistry
 from clawless.tools.file_tools import FileTools
+from clawless.tools.gmail_tools import GmailTools
 from clawless.tools.mcp_tools import create_loader
 from clawless.tools.skill_tools import SkillRunner
 from clawless.tracks import TrackManager
@@ -27,6 +28,8 @@ def build_tools(sandbox: PathSandbox, config) -> ToolRegistry:
     registry = ToolRegistry()
     FileTools(sandbox).register(registry)
     SkillRunner(sandbox).register(registry)
+    if config.gmail.enabled:
+        GmailTools(config.paths.config_root).register(registry)
     for server in normalize_mcp_servers(config.mcp_servers):
         try:
             loader = create_loader(server)
