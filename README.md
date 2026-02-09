@@ -17,7 +17,13 @@ Clawless is a Telegram-only, Python-only assistant with tracks, tools, and a Str
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -e .[llm,test]
+pip install -e ".[llm,test]"
+```
+
+To enable Gmail integration, add the `gmail` extra:
+
+```bash
+pip install -e ".[llm,gmail,test]"
 ```
 
 2. Start the Streamlit UI to configure the bot:
@@ -44,6 +50,37 @@ clawless-bot
 Configuration lives in `~/.clawless/config.json` (fixed location).
 
 See `docs/CONFIG.md` for schema details.
+
+## Gmail Integration (Optional)
+
+Clawless can read your Gmail inbox (read-only) and answer questions about your email, generate to-do lists, and more.
+
+### Setup
+
+1. Create a Google Cloud project and enable the **Gmail API**.
+2. Create an **OAuth Desktop App** credential (APIs & Services > Credentials > OAuth Client ID > Desktop app).
+3. Download the credentials JSON and save it as `~/.clawless/gmail_credentials.json`.
+4. Set `gmail.enabled` to `true` in `~/.clawless/config.json`:
+   ```json
+   {
+     "gmail": {
+       "enabled": true
+     }
+   }
+   ```
+5. On first use, a browser window opens for OAuth consent. The refresh token is saved to `~/.clawless/gmail_token.json` automatically.
+
+Only the `gmail.readonly` scope is requested — the bot cannot send, delete, or modify emails.
+
+**Security:** `gmail_credentials.json` and `gmail_token.json` are listed in `.gitignore` and must never be committed.
+
+### Available Tools
+
+| Tool | Description |
+|------|-------------|
+| `gmail_list` | Fetch all emails from a time period with full content and reply status |
+| `gmail_read` | Read a specific email by message ID |
+| `gmail_search` | Search emails using Gmail query syntax |
 
 ## Heartbeat
 

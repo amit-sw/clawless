@@ -8,7 +8,8 @@
     "paths.internal_root": "Absolute path for internal files (DB, logs, skills).",
     "paths.shared_root": "Absolute path for user-facing files (read/write by tools).",
     "mcp_servers": "Optional list of MCP servers. Bearer auth only.",
-    "heartbeat": "Heartbeat configuration. Use interval_minutes=30 to match defaults."
+    "heartbeat": "Heartbeat configuration. Use interval_minutes=30 to match defaults.",
+    "gmail": "Set enabled=true and place gmail_credentials.json in ~/.clawless/ to enable Gmail tools."
   },
   "telegram": {
     "token": "PASTE_TELEGRAM_BOT_TOKEN",
@@ -38,5 +39,8 @@
     "active_hours": "09:00-17:00",
     "prompt": "You are running a heartbeat check. If HEARTBEAT.md exists, read it. Identify anything that needs attention. If nothing needs attention, reply exactly with HEARTBEAT_OK.",
     "checklist_path": "HEARTBEAT.md"
+  },
+  "gmail": {
+    "enabled": false
   }
 }

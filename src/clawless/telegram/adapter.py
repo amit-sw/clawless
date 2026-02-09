@@ -42,12 +42,32 @@ class TelegramAdapter:
         return updates
 
     def send_message(self, chat_id: int, text: str) -> None:
-        resp = requests.post(
-            f"{self.base_url}/sendMessage",
-            data={"chat_id": chat_id, "text": text},
-            timeout=self.timeout,
-        )
-        resp.raise_for_status()
+        # Telegram has a 4096 character limit per message; split if needed
+        chunks = self._split_message(text, 4096)
+        for chunk in chunks:
+            resp = requests.post(
+                f"{self.base_url}/sendMessage",
+                data={"chat_id": chat_id, "text": chunk},
+                timeout=self.timeout,
+            )
+            resp.raise_for_status()
+
+    @staticmethod
+    def _split_message(text: str, limit: int) -> list[str]:
+        if len(text) <= limit:
+            return [text]
+        chunks: list[str] = []
+        while text:
+            if len(text) <= limit:
+                chunks.append(text)
+                break
+            # Try to split at a newline before the limit
+            split_at = text.rfind("\n", 0, limit)
+            if split_at <= 0:
+                split_at = limit
+            chunks.append(text[:split_at])
+            text = text[split_at:].lstrip("\n")
+        return chunks
 
     def _parse_update(self, item: dict[str, Any]) -> TelegramUpdate | None:
         message = item.get("message")

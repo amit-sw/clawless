@@ -55,12 +55,18 @@ class HeartbeatConfig:
 
 
 @dataclass
+class GmailConfig:
+    enabled: bool = False
+
+
+@dataclass
 class AppConfig:
     telegram: TelegramConfig = field(default_factory=TelegramConfig)
     llm: LLMConfig = field(default_factory=LLMConfig)
     paths: PathsConfig = field(default_factory=PathsConfig)
     mcp_servers: list[MCPServerConfig] = field(default_factory=list)
     heartbeat: HeartbeatConfig = field(default_factory=HeartbeatConfig)
+    gmail: GmailConfig = field(default_factory=GmailConfig)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -94,6 +100,9 @@ class AppConfig:
                 "prompt": self.heartbeat.prompt,
                 "checklist_path": self.heartbeat.checklist_path,
             },
+            "gmail": {
+                "enabled": self.gmail.enabled,
+            },
         }
 
     @classmethod
@@ -102,6 +111,7 @@ class AppConfig:
         llm = payload.get("llm", {})
         paths = payload.get("paths", {})
         heartbeat = payload.get("heartbeat", {})
+        gmail = payload.get("gmail", {})
         mcp_servers = payload.get("mcp_servers", [])
         return cls(
             telegram=TelegramConfig(
@@ -134,6 +144,9 @@ class AppConfig:
                 active_hours=heartbeat.get("active_hours", None),
                 prompt=str(heartbeat.get("prompt", DEFAULT_HEARTBEAT_PROMPT)),
                 checklist_path=str(heartbeat.get("checklist_path", "HEARTBEAT.md")),
+            ),
+            gmail=GmailConfig(
+                enabled=bool(gmail.get("enabled", False)),
             ),
         )
 

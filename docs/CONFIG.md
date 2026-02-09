@@ -43,6 +43,26 @@ Config file: `~/.clawless/config.json` (fixed location).
 - `openai:<model>` uses `langchain-openai` `ChatOpenAI`.
 - `openrouter:<model>` uses OpenAI-compatible base URL `https://openrouter.ai/api/v1`.
 
+## Gmail
+
+```json
+{
+  "gmail": {
+    "enabled": false
+  }
+}
+```
+
+Set `enabled` to `true` to register the Gmail tools (`gmail_list`, `gmail_read`, `gmail_search`). Requires:
+
+1. A Google Cloud project with the Gmail API enabled.
+2. An OAuth Desktop App credential saved as `~/.clawless/gmail_credentials.json`.
+3. The `gmail` optional dependencies installed: `pip install -e ".[gmail]"`.
+
+On first use the OAuth consent flow opens a browser window. The refresh token is saved to `~/.clawless/gmail_token.json` for subsequent runs. Only the `gmail.readonly` scope is requested — the bot cannot send, delete, or modify emails.
+
+**Security:** Never commit `gmail_credentials.json` or `gmail_token.json`. Both are listed in `.gitignore`.
+
 ## MCP
 
 `mcp_servers` is a list of MCP endpoints with Bearer auth. `list_method` and `call_method` can be customized to match server JSON-RPC method names.

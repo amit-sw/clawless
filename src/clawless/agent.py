@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 from dataclasses import dataclass
 from typing import Any, Iterable
 
 from clawless.tools.base import ToolRegistry
+
+logger = logging.getLogger(__name__)
 
 TOOL_CALL_PATTERN = re.compile(r"\{.*\}", re.DOTALL)
 
@@ -65,26 +68,32 @@ class Agent:
         self.llm = llm
         self.tools = tools
 
-    def run(self, track_summary: str, messages: list[Message]) -> str:
+    def run(self, track_summary: str, messages: list[Message], max_tool_rounds: int = 10) -> str:
         system_prompt = self._build_system_prompt(track_summary)
         tool_prompt = self._build_tool_prompt()
         request = [Message("system", system_prompt), Message("system", tool_prompt)] + messages
-        response = self.llm.invoke(request)
-        tool_call = self._parse_tool_call(response)
-        if not tool_call:
-            return response
-        tool_name = tool_call.get("tool")
-        args = tool_call.get("args", {})
-        tool = self.tools.get(tool_name)
-        if not tool:
-            return f"Tool not found: {tool_name}"
-        result = tool.handler(args)
-        followup = request + [
-            Message("assistant", response),
-            Message("system", f"Tool result: {json.dumps(result)}"),
-        ]
-        final_response = self.llm.invoke(followup)
-        return final_response
+        response = ""
+        for round_num in range(max_tool_rounds):
+            response = self.llm.invoke(request)
+            logger.debug("round=%d response=%s", round_num, response[:200])
+            tool_call = self._parse_tool_call(response)
+            if not tool_call:
+                return response
+            tool_name = tool_call.get("tool")
+            args = tool_call.get("args", {})
+            tool = self.tools.get(tool_name)
+            if not tool:
+                return f"Tool not found: {tool_name}"
+            try:
+                result = tool.handler(args)
+                logger.debug("round=%d tool=%s result_keys=%s", round_num, tool_name,
+                             list(result.keys()) if isinstance(result, dict) else "not_dict")
+            except Exception as exc:
+                logger.warning("round=%d tool=%s error=%s", round_num, tool_name, exc)
+                result = {"error": str(exc)}
+            request.append(Message("assistant", response))
+            request.append(Message("system", f"Tool result: {json.dumps(result)}"))
+        return response
 
     def _build_system_prompt(self, summary: str) -> str:
         parts = [
@@ -110,6 +119,16 @@ class Agent:
     @staticmethod
     def _parse_tool_call(response: str) -> dict[str, Any] | None:
         text = response.strip()
+        # Strip markdown code fences if present (```json ... ``` or ``` ... ```)
+        if text.startswith("```"):
+            lines = text.split("\n")
+            # Remove first line (```json or ```) and last line (```)
+            inner_lines = []
+            for line in lines[1:]:
+                if line.strip() == "```":
+                    break
+                inner_lines.append(line)
+            text = "\n".join(inner_lines).strip()
         if text.startswith("{") and text.endswith("}"):
             try:
                 data = json.loads(text)
